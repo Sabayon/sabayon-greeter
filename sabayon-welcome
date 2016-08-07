@@ -147,9 +147,9 @@ class AppView(WebKit.WebView):
             self.execute_script("$('#install').toggleClass('hide', false);")
             self.execute_script(
                 "$('#install-cli').toggleClass('hide', false);")
-        else:
-            self.execute_script("$('#build').toggleClass('hide', false);")
-            self.execute_script("$('#donate').toggleClass('hide', false);")
+        #else:
+        #    self.execute_script("$('#build').toggleClass('hide', false);")
+        #    self.execute_script("$('#donate').toggleClass('hide', false);")
 
     def _load_finished_cb(self, view, frame):
         self._push_config()
