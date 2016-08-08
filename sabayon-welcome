@@ -53,7 +53,7 @@ class WelcomeConfig(object):
         self._welcome_bin_path = os.path.abspath(inspect.getfile(
             inspect.currentframe()))
 
-        # XXX: broken L57 store we are a live CD session
+        # store if we are in a live CD session
         with open('/proc/cmdline','r') as file:
            for line in file:
               if 'cdroot' in line:
