@@ -1,4 +1,4 @@
-sabayon-welcome
+sabayon-greeter
 ================
 
 Sabayon welcome screen

@@ -66,7 +66,7 @@ class WelcomeConfig(object):
 
         # store full path to our autostart symlink
         self._autostart_path = os.path.expanduser(
-            '~/.config/autostart/sabayon-welcome.desktop')
+            '~/.config/autostart/sabayon-greeter.desktop')
 
         # ensure our config directory exists
         if not os.path.exists(self._config_dir):
@@ -91,7 +91,7 @@ class WelcomeConfig(object):
             # create the autostart symlink
             try:
                 os.symlink(
-                    '/usr/share/applications/sabayon-welcome.desktop',
+                    '/usr/share/applications/sabayon-greeter.desktop',
                     self._autostart_path)
             except OSError:
                 pass
@@ -218,11 +218,11 @@ class WelcomeApp(object):
             print('Using relative path for data source.\
                    Non-production testing.')
             self._data_path = os.path.join(self._location, 'data/')
-        elif(os.path.exists('/usr/share/sabayon-welcome/')):
-            print('Using /usr/share/sabayon-welcome/ path.')
-            self._data_path = '/usr/share/sabayon-welcome/'
+        elif(os.path.exists('/usr/share/sabayon-greeter/')):
+            print('Using /usr/share/sabayon-greeter/ path.')
+            self._data_path = '/usr/share/sabayon-greeter/'
         else:
-            print('Unable to source the sabayon-welcome data directory.')
+            print('Unable to source the sabayon-greeter data directory.')
             sys.exit(1)
 
         self._build_app()
