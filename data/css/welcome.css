@@ -238,3 +238,7 @@ p.no-space {
 .links-cat h4 {
     text-align: center;
 }
+
+.links-cat .btn {
+    padding: 6px 0;
+}
