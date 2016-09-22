@@ -160,12 +160,6 @@ class AppView(WebKit.WebView):
                                         pol_dec):
         uri = net_req.get_uri()
 
-        try:
-            if uri.index('#') > 0:
-                uri = uri[:uri.index('#')]
-        except ValueError:
-            pass
-
         if uri == self.l_uri:
             pol_dec.use()
             return True
