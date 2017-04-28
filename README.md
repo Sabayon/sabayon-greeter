@@ -7,4 +7,4 @@ Sabayon welcome screen
 * gtk
 * python-gobject
 * python-simplejson
-
+* pywebkitgtk
