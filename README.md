@@ -3,7 +3,7 @@ sabayon-greeter
 
 Sabayon welcome screen
 
-* python3
+* python 3
 * gtk
 * python-gobject
 * python-simplejson
