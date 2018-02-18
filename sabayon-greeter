@@ -32,14 +32,15 @@ import urllib.request
 import urllib.error
 import webbrowser
 
-from gi.repository import WebKit, Gtk
+import gi
+
+gi.require_version('WebKit2', '4.0')
+from gi.repository import WebKit2, Gtk
 
 from simplejson import dumps as to_json
 
 
-
 class WelcomeConfig(object):
-
     """ Manages Welcome configuration """
 
     def __init__(self):
@@ -54,12 +55,12 @@ class WelcomeConfig(object):
             inspect.currentframe()))
 
         # store if we are in a live CD session
-        with open('/proc/cmdline','r') as file:
-           for line in file:
-              if 'cdroot' in line:
-                 self._live = True
-              else:
-                 self._live = False
+        with open('/proc/cmdline', 'r') as file:
+            for line in file:
+                if 'cdroot' in line:
+                    self._live = True
+                else:
+                    self._live = False
 
         # store directory to our welcome configuration
         self._config_dir = os.path.expanduser('~/.config/sabayon/welcome/')
@@ -110,16 +111,14 @@ class WelcomeConfig(object):
         return self._live
 
 
-class AppView(WebKit.WebView):
-
+class AppView(WebKit2.WebView):
     def __init__(self):
-        WebKit.WebView.__init__(self)
+        WebKit2.WebView.__init__(self)
 
         self._config = WelcomeConfig()
 
-        self.connect('load-finished', self._load_finished_cb)
-        self.connect('navigation-policy-decision-requested',
-                     self._nav_request_policy_decision_cb)
+        self.connect('load-changed', self._load_changed_cb)
+        self.connect('decide-policy', self._nav_request_policy_decision_cb)
         self.l_uri = None
 
     def _push_config(self):
@@ -127,53 +126,52 @@ class AppView(WebKit.WebView):
         # broadcast event any suitable controllers will be able to listen and
         # respond accordingly, for now we just use jQuery to manually toggle
 
-        self.execute_script("$('#arch').html('%s')" % self._config.arch)
-        self.execute_script(
+        self.run_javascript("$('#arch').html('%s')" % self._config.arch)
+        self.run_javascript(
             "$('#autostart').toggleClass('fa-check-circle-o', %s).toggleClass(\
             'fa-circle-o', %s)" % (to_json(self._config.autostart),
-                                        to_json(not self._config.autostart)))
+                                   to_json(not self._config.autostart)))
 
         # if self._config.desktop == 'GNOME':
-        #  self.execute_script("$('#gnome_help').toggleClass('hide', false);")
+        #  self.run_javascript("$('#gnome_help').toggleClass('hide', false);")
         # elif self._config.desktop == 'KDE':
-        #  self.execute_script("$('#kde_help').toggleClass('hide', false);")
+        #  self.run_javascript("$('#kde_help').toggleClass('hide', false);")
 
-        # self.execute_script("$('#codename').html('%s')" %
+        # self.run_javascript("$('#codename').html('%s')" %
         #   (to_json(self._config.codename)))
-        # self.execute_script("$('#desktop').html('%s')" %
+        # self.run_javascript("$('#desktop').html('%s')" %
         #   (to_json(self._config.desktop)))
-        # self.execute_script("$('#version').html('%s')" %
+        # self.run_javascript("$('#version').html('%s')" %
         #   (self._config.version))
 
         if self._config.live:
-            self.execute_script("$('#install').toggleClass('hide', false);")
-            self.execute_script(
+            self.run_javascript("$('#install').toggleClass('hide', false);")
+            self.run_javascript(
                 "$('#install-cli').toggleClass('hide', false);")
-        #else:
-        #    self.execute_script("$('#build').toggleClass('hide', false);")
-        #    self.execute_script("$('#donate').toggleClass('hide', false);")
+            # else:
+            #    self.run_javascript("$('#build').toggleClass('hide', false);")
+            #    self.run_javascript("$('#donate').toggleClass('hide', false);")
 
-    def _load_finished_cb(self, view, frame):
-        self._push_config()
+    def _load_changed_cb(self, web_view, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            self._push_config()
 
-    def _nav_request_policy_decision_cb(self, view, frame, net_req, nav_act,
-                                        pol_dec):
-        uri = net_req.get_uri()
+    def _nav_request_policy_decision_cb(self, view, decision, decision_type):
+        uri = decision.get_request().get_uri()
 
         if uri == self.l_uri:
-            pol_dec.use()
+            decision.use()
             return True
 
         if uri.startswith('cmd://'):
             self._do_command(uri)
+            decision.ignore()
             return True
 
         self.l_uri = uri
 
-        page = urllib.request.urlopen(uri)
-        frame.load_string(page.read().decode(),
-                          "text/html", "iso-8859-15", page.geturl())
-        pol_dec.ignore()
+        view.load_uri(uri)
+        decision.ignore()
         return True
 
     def _do_command(self, uri):
@@ -187,7 +185,8 @@ class AppView(WebKit.WebView):
         elif uri == 'install':
             subprocess.Popen(['/usr/bin/anaconda-installer'])
         elif uri == 'install-cli':
-            subprocess.Popen(['xdg-terminal','/usr/bin/anaconda-installer -T'])
+            subprocess.Popen(
+                ['xdg-terminal', '/usr/bin/anaconda-installer -T'])
         elif uri == 'close':
             Gtk.main_quit()
         elif uri == 'toggle-startup':
@@ -201,18 +200,17 @@ class AppView(WebKit.WebView):
 
 
 class WelcomeApp(object):
-
     def __init__(self):
         # establish our location
         self._location = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
 
         # check for relative path
-        if(os.path.exists(os.path.join(self._location, 'data/'))):
+        if (os.path.exists(os.path.join(self._location, 'data/'))):
             print('Using relative path for data source.\
                    Non-production testing.')
             self._data_path = os.path.join(self._location, 'data/')
-        elif(os.path.exists('/usr/share/sabayon-greeter/')):
+        elif (os.path.exists('/usr/share/sabayon-greeter/')):
             print('Using /usr/share/sabayon-greeter/ path.')
             self._data_path = '/usr/share/sabayon-greeter/'
         else:
@@ -238,7 +236,7 @@ class WelcomeApp(object):
         # load our index file
         file = os.path.abspath(os.path.join(self._data_path, 'index.html'))
         uri = 'file://' + urllib.request.pathname2url(file)
-        mv.open(uri)
+        mv.load_uri(uri)
 
         # build scrolled window widget and add our appview container
         sw = Gtk.ScrolledWindow()
@@ -263,6 +261,7 @@ class WelcomeApp(object):
 
     def close(self, p1, p2):
         Gtk.main_quit(p1, p2)
+
 
 app = WelcomeApp()
 app.run()
