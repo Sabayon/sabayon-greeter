@@ -183,10 +183,10 @@ class AppView(WebKit2.WebView):
         elif uri == 'kde-help':
             subprocess.Popen(['khelpcenter'])
         elif uri == 'install':
-            subprocess.Popen(['/usr/bin/anaconda-installer'])
+            subprocess.Popen(['/usr/bin/installer'])
         elif uri == 'install-cli':
             subprocess.Popen(
-                ['xdg-terminal', '/usr/bin/anaconda-installer -T'])
+                ['xdg-terminal', '/usr/bin/installer'])
         elif uri == 'close':
             Gtk.main_quit()
         elif uri == 'toggle-startup':
